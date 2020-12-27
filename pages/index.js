@@ -6,24 +6,22 @@ import prepareSessionOptions from '../utils/prepareSessionOptions';
 import styles from '../styles/Home.module.css';
 
 export default function Home() {
-  // const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);
 
-  // useEffect(async () => {
-  //   const products = await axios
-  //     .get('/api/shopify/product/list')
-  //     .then((response) => response.data);
-  //   console.log('products', products);
-  //   setProducts(products);
-  // }, []);
+  useEffect(async () => {
+    const products = await axios
+      .get('/api/shopify/product/list')
+      .then((response) => response.data);
+    setProducts(products);
+  }, []);
 
-  // return (
-  //   <div className={styles.container}>
-  //     {products.map((product) => (
-  //       <h1>{product.title}</h1>
-  //     ))}
-  //   </div>
-  // );
-  return <h1>hello world</h1>;
+  return (
+    <div className={styles.container}>
+      {products.map((product) => (
+        <h1>{product.title}</h1>
+      ))}
+    </div>
+  );
 }
 
 export async function getServerSideProps(ctx) {
@@ -33,7 +31,7 @@ export async function getServerSideProps(ctx) {
     SHOPIFY_APP_SCOPES: scopes,
     SHOPIFY_APP_SLUG: appSlug,
   } = process.env;
-  console.log(ctx.resolvedUrl);
+
   const { installAppIfNot } = createNextShopifyFunctions({
     prepareSessionOptions,
     sharedSecret,
