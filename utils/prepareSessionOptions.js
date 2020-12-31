@@ -1,5 +1,6 @@
-import { expressSession } from 'next-session';
 import connectMongo from 'connect-mongo';
+import { expressSession } from 'next-session';
+
 import connectMongoose from './connectMongoose';
 
 const prepareSessionOptions = async () => {
@@ -9,9 +10,9 @@ const prepareSessionOptions = async () => {
     cookie: {
       maxAge: parseInt(process.env.SHOPIFY_APP_SESSION_COOKIE_MAXAGE, 10),
       secure: true,
-      sameSite: 'None',
+      sameSite: 'None'
     },
-    store: new MongoStore({ mongooseConnection }),
+    store: new MongoStore({ mongooseConnection })
   };
 };
 

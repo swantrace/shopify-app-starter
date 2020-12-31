@@ -1,48 +1,63 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import Head from 'next/head';
-import createNextShopifyFunctions from 'next-connect-shopify';
-import prepareSessionOptions from '../utils/prepareSessionOptions';
-import styles from '../styles/Home.module.css';
+import { ResourcePicker, TitleBar } from '@shopify/app-bridge-react';
+import { EmptyState, Layout, Page } from '@shopify/polaris';
+import dynamic from 'next/dynamic';
+import { useCallback, useState } from 'react';
+import store from 'store-js';
+
+const ResourceListWithProducts = dynamic(() => import('../components/ResourceList'), {
+  ssr: false
+});
+import installAppIfNot from '../utils/installAppIfNot';
+const img = 'https://cdn.shopify.com/s/files/1/0757/9955/files/empty-state.svg';
 
 export default function Home() {
-  const [products, setProducts] = useState([]);
-
-  useEffect(async () => {
-    const products = await axios
-      .get('/api/shopify/product/list')
-      .then((response) => response.data);
-    setProducts(products);
+  const [open, setOpen] = useState(false);
+  const emptyState = !store.get('handles');
+  const handleSelection = useCallback((resources) => {
+    setOpen(false);
+    const handlesFromResources = resources.selection.map((product) => product.handle);
+    store.set('handles', handlesFromResources);
   }, []);
-
   return (
-    <div className={styles.container}>
-      {products.map((product) => (
-        <h1>{product.title}</h1>
-      ))}
-    </div>
+    <Page>
+      <TitleBar
+        title="Sample App"
+        primaryAction={{
+          content: 'Select products',
+          onAction: () => setOpen(true)
+        }}
+      />
+      <ResourcePicker
+        resourceType="Product"
+        showVariants={false}
+        open={open}
+        onSelection={(resources) => handleSelection(resources)}
+        onCancel={() => setOpen(false)}
+      />
+      <Layout>
+        {emptyState ? (
+          <EmptyState
+            heading="Discount your products temporarily"
+            action={{
+              content: 'Select products',
+              onAction: () => setOpen(true)
+            }}
+            image={img}>
+            <p>Select products to change their price temporarily.</p>
+          </EmptyState>
+        ) : (
+          <ResourceListWithProducts />
+        )}
+      </Layout>
+    </Page>
   );
 }
 
 export async function getServerSideProps(ctx) {
-  const {
-    SHOPIFY_APP_CLIENT_SECRET: sharedSecret,
-    SHOPIFY_APP_CLIENT_ID: apiKey,
-    SHOPIFY_APP_SCOPES: scopes,
-    SHOPIFY_APP_SLUG: appSlug,
-  } = process.env;
-
-  const { installAppIfNot } = createNextShopifyFunctions({
-    prepareSessionOptions,
-    sharedSecret,
-    apiKey,
-    scopes,
-    appSlug,
-  });
-
   await installAppIfNot(ctx);
-
   return {
-    props: {},
+    props: {
+      shopOrigin: ctx.req.session.shop
+    }
   };
 }

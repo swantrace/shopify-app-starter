@@ -9,7 +9,7 @@ async function connectMongoose() {
   const db = await mongoose.connect(process.env.SHOPIFY_APP_MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useFindAndModify: false,
+    useFindAndModify: false
   });
   connection.isConnected = db.connections[0].readyState;
   connection.mongooseConnection = mongoose.connection;
